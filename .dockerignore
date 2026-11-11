@@ -1,0 +1,8 @@
+.venv
+frontend
+backend
+ldap-server
+**/node_modules
+**/target
+**/__pycache__
+Rapport_Projet5.pdf

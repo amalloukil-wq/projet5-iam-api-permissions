@@ -1,0 +1,7 @@
+dn: ou=People,dc=examen,dc=local
+objectClass: organizationalUnit
+ou: People
+
+dn: ou=Groups,dc=examen,dc=local
+objectClass: organizationalUnit
+ou: Groups

@@ -1,0 +1,21 @@
+# Environnements et dependances (regenerables)
+.venv/
+**/node_modules/
+**/target/
+**/dist/
+**/.angular/
+**/__pycache__/
+*.pyc
+
+# Captures de l'outil de navigation automatique (hors projet)
+.playwright-mcp/
+
+# Fichiers d'editeur et temporaires
+.idea/
+*.iml
+*.bak
+*.log
+
+# Archive des images Docker (trop lourde pour GitHub : se regenere avec "docker compose build")
+*.tar
+*.tar.gz

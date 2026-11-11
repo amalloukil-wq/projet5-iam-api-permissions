@@ -1,0 +1,113 @@
+# Projet 5 : toute la pile dans Docker. Lancer :  docker compose up -d --build
+#   - ldap       : annuaire OpenLDAP (memes comptes et groupes que l'ApacheDS du projet, suffixe dc=examen,dc=local)
+#   - postgres   : base de donnees des documents
+#   - keycloak   : serveur d'identite (realm "examen" cree par le service "setup")
+#   - setup      : configure Keycloak une fois, puis s'arrete
+#   - backend    : API Spring Boot (Java 25)
+#   - frontend   : application Angular servie par nginx
+#   - tools      : outils de test (profil "tools"), lances avec  docker compose run --rm tools python scripts/...
+
+x-outils: &outils
+  image: examen-tools:1.0
+  build:
+    context: .
+    dockerfile: Dockerfile.tools
+  environment: &env-outils
+    KC_URL: "http://keycloak:8080"
+    API_URL: "http://backend:8000"
+    LDAP_HOST: "ldap"
+    LDAP_PORT: "389"
+    LDAP_BIND_DN: "cn=admin,dc=examen,dc=local"
+    LDAP_BIND_PW: "admin"
+    LDAP_BASE: "dc=examen,dc=local"
+  volumes:
+    - ./scripts:/app/scripts
+    - ./resultats-docker:/app/resultats
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: docs
+      POSTGRES_USER: docs
+      POSTGRES_PASSWORD: docs
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docs -d docs"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  ldap:
+    image: osixia/openldap:1.5.0
+    command: --copy-service
+    environment:
+      LDAP_ORGANISATION: "Examen"
+      LDAP_DOMAIN: "examen.local"
+      LDAP_ADMIN_PASSWORD: "admin"
+      LDAP_TLS: "false"
+    ports:
+      - "1389:389"
+    volumes:
+      - ./ldap/base.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/10-base.ldif
+      - ./ldap/users.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/20-users.ldif
+      - ./ldap/groups.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/30-groups.ldif
+    healthcheck:
+      test: ["CMD-SHELL", "ldapsearch -x -H ldap://localhost -b dc=examen,dc=local -D cn=admin,dc=examen,dc=local -w admin -s base dn"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.6.0
+    command: start-dev
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      # Les jetons portent iss = http://localhost:8080 (adresse du navigateur), meme quand les autres
+      # conteneurs joignent Keycloak par http://keycloak:8080
+      KC_HOSTNAME: "http://localhost:8080"
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+    ports:
+      - "8080:8080"
+
+  setup:
+    <<: *outils
+    environment: *env-outils
+    command: ["python", "scripts/setup_keycloak.py"]
+    depends_on:
+      ldap:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    restart: "no"
+
+  backend:
+    image: examen-backend:1.0
+    build: ./backend
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/docs"
+      APP_KC_URL: "http://localhost:8080"
+      APP_KC_INTERNAL_URL: "http://keycloak:8080"
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    image: examen-frontend:1.0
+    build: ./frontend
+    ports:
+      - "4200:80"
+
+  tools:
+    <<: *outils
+    profiles: ["tools"]
+    command: ["python", "scripts/tests_matrix.py"]
+
+volumes:
+  pgdata:

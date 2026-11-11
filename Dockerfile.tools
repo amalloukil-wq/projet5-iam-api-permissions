@@ -1,0 +1,7 @@
+# Outils Python du projet (configuration de Keycloak, tests, mesures) dans un conteneur
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+# Les scripts et les resultats sont montes en volumes par docker-compose
+CMD ["python", "scripts/setup_keycloak.py"]

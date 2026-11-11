@@ -1,0 +1,54 @@
+dn: uid=amartin,ou=People,dc=examen,dc=local
+objectClass: inetOrgPerson
+uid: amartin
+sn: Martin
+givenName: Alice
+cn: Alice Martin
+displayName: Alice Martin
+mail: alice.martin@examen.local
+title: CEO
+userPassword: secret
+
+dn: uid=bdupont,ou=People,dc=examen,dc=local
+objectClass: inetOrgPerson
+uid: bdupont
+sn: Dupont
+givenName: Bob
+cn: Bob Dupont
+displayName: Bob Dupont
+mail: bob.dupont@examen.local
+title: Lead Developer
+userPassword: secret
+
+dn: uid=cdurand,ou=People,dc=examen,dc=local
+objectClass: inetOrgPerson
+uid: cdurand
+sn: Durand
+givenName: Clara
+cn: Clara Durand
+displayName: Clara Durand
+mail: clara.durand@examen.local
+title: Developer
+userPassword: secret
+
+dn: uid=dbernard,ou=People,dc=examen,dc=local
+objectClass: inetOrgPerson
+uid: dbernard
+sn: Bernard
+givenName: David
+cn: David Bernard
+displayName: David Bernard
+mail: david.bernard@examen.local
+title: Marketing Manager
+userPassword: secret
+
+dn: uid=epetit,ou=People,dc=examen,dc=local
+objectClass: inetOrgPerson
+uid: epetit
+sn: Petit
+givenName: Emma
+cn: Emma Petit
+displayName: Emma Petit
+mail: emma.petit@examen.local
+title: Support Engineer
+userPassword: secret

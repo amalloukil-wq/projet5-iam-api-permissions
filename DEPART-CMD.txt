@@ -1,0 +1,64 @@
+DEPART DE L'EMPLOYE (bdupont) - commandes a copier-coller dans CMD
+===================================================================
+
+Ouvrir une NOUVELLE fenetre "Invite de commandes" (touche Windows, taper cmd, Entree).
+Ne pas utiliser les fenetres de Keycloak, de l'API ou de l'application.
+
+--- 1. Se placer dans le projet ---------------------------------
+cd /d G:\2emcyber\IAM\projet
+
+--- 2. Les etapes (une commande a la fois, dans l'ordre) --------
+
+ETAPE 1 : retirer bdupont de ses groupes dans l'annuaire
+.venv\Scripts\python.exe scripts\depart_manuel.py retirer
+
+ETAPE 2 : desactiver son compte dans Keycloak
+.venv\Scripts\python.exe scripts\depart_manuel.py desactiver
+
+REMETTRE TOUT EN ETAT (pour recommencer)
+.venv\Scripts\python.exe scripts\depart_manuel.py restaurer
+
+--- Resultats attendus -------------------------------------------
+retirer      ->  OK : bdupont retire des groupes ['Developers', 'Staff'] ...
+desactiver   ->  OK : le compte bdupont est desactive dans Keycloak
+restaurer    ->  OK : bdupont remis dans ses groupes et compte reactive
+
+--- Pendant la demonstration (application : http://localhost:4200) ---
+1. Se connecter en bdupont / secret.
+2. Lancer l'ETAPE 1, puis dans l'application avec le meme jeton :
+     mode local        POST /docs  ->  201  (il peut encore ecrire)
+     mode introspection POST /docs ->  403  (role insuffisant)
+3. Lancer l'ETAPE 2, puis dans l'application :
+     mode local        POST /docs  ->  201  (le jeton est lu tel quel)
+     mode introspection POST /docs ->  401  (jeton inactif)
+     bouton "Renouveler"           ->  refuse (User disabled)
+4. Deconnexion, puis nouvelle connexion -> "Account is disabled".
+
+--- Desactiver SANS ligne de commande ---------------------------
+http://localhost:8080  (admin / admin)  ->  realm "examen"  ->  Users
+->  bdupont  ->  bouton "Enabled" sur Off.
+Pour reactiver : remettre "Enabled" sur On.
+
+--- Desactiver / reactiver / supprimer N'IMPORTE QUEL utilisateur (ex. amal) ---
+cd /d G:\2emcyber\IAM\projet
+
+Desactiver le compte (il reste dans l'annuaire, Keycloak refuse sa connexion) :
+.venv\Scripts\python.exe scripts\gerer_utilisateur.py amal desactiver
+
+Reactiver le compte :
+.venv\Scripts\python.exe scripts\gerer_utilisateur.py amal reactiver
+
+Supprimer (retire de ses groupes, supprime de l'annuaire, puis de Keycloak) :
+.venv\Scripts\python.exe scripts\gerer_utilisateur.py amal supprimer
+
+(remplacer "amal" par l'identifiant voulu)
+
+--- Si le jeton expire pendant la demo (il dure 2 minutes) ------
+Se deconnecter puis se reconnecter dans l'application.
+Pour avoir 10 minutes avant la scene :
+.venv\Scripts\python.exe scripts\setup_keycloak.py --access-lifespan 600
+Pour revenir a 2 minutes ensuite :
+.venv\Scripts\python.exe scripts\setup_keycloak.py
+
+--- Avec Docker (a la place de .venv\Scripts\python.exe) --------
+docker compose run --rm tools python scripts/depart_manuel.py desactiver

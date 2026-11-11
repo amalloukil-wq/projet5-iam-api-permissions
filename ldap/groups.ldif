@@ -1,0 +1,19 @@
+dn: cn=Admins,ou=Groups,dc=examen,dc=local
+objectClass: groupOfNames
+cn: Admins
+member: uid=amartin,ou=People,dc=examen,dc=local
+
+dn: cn=Developers,ou=Groups,dc=examen,dc=local
+objectClass: groupOfNames
+cn: Developers
+member: uid=bdupont,ou=People,dc=examen,dc=local
+member: uid=cdurand,ou=People,dc=examen,dc=local
+
+dn: cn=Staff,ou=Groups,dc=examen,dc=local
+objectClass: groupOfNames
+cn: Staff
+member: uid=amartin,ou=People,dc=examen,dc=local
+member: uid=bdupont,ou=People,dc=examen,dc=local
+member: uid=cdurand,ou=People,dc=examen,dc=local
+member: uid=dbernard,ou=People,dc=examen,dc=local
+member: uid=epetit,ou=People,dc=examen,dc=local
