@@ -6,13 +6,15 @@
 #   - backend    : API Spring Boot (Java 25)
 #   - frontend   : application Angular servie par nginx
 #   - tools      : outils de test (profil "tools"), lances avec  docker compose run --rm tools python scripts/...
+#                  (le dossier apps/scripts est monte dans le conteneur sous /app/scripts)
 
 x-outils: &outils
   image: examen-tools:1.0
   build:
-    context: .
+    context: ./apps
     dockerfile: Dockerfile.tools
   environment: &env-outils
+    RESULTS_DIR: "/app/resultats"
     KC_URL: "http://keycloak:8080"
     API_URL: "http://backend:8000"
     LDAP_HOST: "ldap"
@@ -21,8 +23,8 @@ x-outils: &outils
     LDAP_BIND_PW: "admin"
     LDAP_BASE: "dc=examen,dc=local"
   volumes:
-    - ./scripts:/app/scripts
-    - ./resultats-docker:/app/resultats
+    - ./apps/scripts:/app/scripts
+    - ./docs/resultats-docker:/app/resultats
 
 services:
   postgres:
@@ -52,9 +54,9 @@ services:
     ports:
       - "1389:389"
     volumes:
-      - ./ldap/base.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/10-base.ldif
-      - ./ldap/users.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/20-users.ldif
-      - ./ldap/groups.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/30-groups.ldif
+      - ./ldif/base.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/10-base.ldif
+      - ./ldif/users.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/20-users.ldif
+      - ./ldif/groups.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/30-groups.ldif
     healthcheck:
       test: ["CMD-SHELL", "ldapsearch -x -H ldap://localhost -b dc=examen,dc=local -D cn=admin,dc=examen,dc=local -w admin -s base dn"]
       interval: 5s
@@ -87,7 +89,7 @@ services:
 
   backend:
     image: examen-backend:1.0
-    build: ./backend
+    build: ./apps/backend
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/docs"
       APP_KC_URL: "http://localhost:8080"
@@ -100,7 +102,7 @@ services:
 
   frontend:
     image: examen-frontend:1.0
-    build: ./frontend
+    build: ./apps/frontend
     ports:
       - "4200:80"
 
